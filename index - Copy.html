@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Nearby Plant Nurseries Finder 🌿</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+    #map {
+      height: 400px;
+      width: 100%;
+      margin-top: 20px;
+      border: 1px solid #ccc;
+    }
+    .results {
+      margin-top: 20px;
+    }
+    .place {
+      padding: 10px;
+      border-bottom: 1px solid #ddd;
+    }
+  </style>
+</head>
+<body>
+
+<h2>Find Nearby Plant Nurseries</h2>
+<p>Click the button below to find nurseries around you.</p>
+<button onclick="initLocation()">📍 Find My Location & Search</button>
+
+<div id="map"></div>
+<div class="results" id="results"></div>
+
+<script>
+  let map;
+  let service;
+  let userMarker;
+
+  function initLocation() {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(position => {
+        const userLocation = {
+          lat: position.coords.latitude,
+          lng: position.coords.longitude
+        };
+
+        initMap(userLocation);
+        findNearbyNurseries(userLocation);
+      }, () => {
+        alert("Location access denied.");
+      });
+    } else {
+      alert("Geolocation not supported.");
+    }
+  }
+
+  function initMap(location) {
+    map = new google.maps.Map(document.getElementById("map"), {
+      center: location,
+      zoom: 14
+    });
+
+    userMarker = new google.maps.Marker({
+      position: location,
+      map: map,
+      icon: "http://maps.google.com/mapfiles/ms/icons/blue-dot.png",
+      title: "Your Location"
+    });
+  }
+
+  function findNearbyNurseries(location) {
+    const request = {
+      location: location,
+      radius: '5000', // 5km radius
+      keyword: 'plant nursery'
+    };
+
+    service = new google.maps.places.PlacesService(map);
+    service.nearbySearch(request, displayResults);
+  }
+
+  function displayResults(results, status) {
+    if (status === google.maps.places.PlacesServiceStatus.OK) {
+      const resultContainer = document.getElementById("results");
+      resultContainer.innerHTML = `<h3>Nearby Nurseries:</h3>`;
+
+      results.forEach(place => {
+        // Add marker
+        new google.maps.Marker({
+          map: map,
+          position: place.geometry.location,
+          title: place.name
+        });
+
+        // Add to results list
+        resultContainer.innerHTML += `
+          <div class="place">
+            <strong>${place.name}</strong><br>
+            ${place.vicinity || "Address not available"}
+          </div>
+        `;
+      });
+    } else {
+      document.getElementById("results").innerHTML = `<p>No plant nurseries found nearby.</p>`;
+    }
+  }
+</script>
+
+<!-- ✅ Google Maps JavaScript SDK with Places Library -->
+<script async defer
+  src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBdYoWpoJytmWoxjl4xl1SnIx2wGTaW-Kw&libraries=places">
+</script>
+
+</body>
+</html>
